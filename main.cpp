@@ -1,33 +1,25 @@
 #include <iostream>
 #include <random>
 
+
 enum Hit_Status {
     Indefinitely,
     Hit = 1,
-    Miss = -1,
-    Terminated = 3
+    Miss = -1
+//    Terminated = 3
 };
 struct Cell {
     Hit_Status hit;
     int Ship_ID;
 };
-const int move[4][2]{0, 1, 0, -1, 1, 0, -1, 0};
 
-void ComputerMove(Cell **&Player, size_t size, int x, int y) {
-    std::random_device rand;
-    int c;
-    std::uniform_int_distribution<int> disribution(1, 4);
-    c = disribution(rand);
-    if (Player[x+move[c][0]][y+move[c][1]].Ship_ID!=0) {
-        Player[x+move[c][0]][y+move[c][1]].hit=Hit;
-        ComputerMove(Player,size,x+move[c][0],y+move[c][1]);
-    }else{
-        Player[x+move[c][0]][y+move[c][1]].hit=Miss;
-        return;
-    }
-}
+void Print_Sea_Battlw_for_PC(Cell **&Player, size_t size);
 
-bool ship(Cell **&Player, size_t size, int x, int y, int a, int b) {
+void Print_Sea_Battlw_for_Player(Cell **&Player, size_t size);
+
+
+bool ship(Cell **&Player, int x, int y, int a, int b) {
+
     int i = 0, j = 0;
     if (y == b) {
         if (x < a) {
@@ -42,22 +34,22 @@ bool ship(Cell **&Player, size_t size, int x, int y, int a, int b) {
                 return false;
             }
         }
-        if (x == a) {
-            if (y < b) {
-                i = y;
-                j = b;
-            } else if (y > b) {
-                i = b;
-                j = y;
-            }
-            for (; i < j; i++) {
-                if (Player[x][i].Ship_ID != 0) {
-                    return false;
-                }
+    } else if (x == a) {
+        if (y < b) {
+            i = y;
+            j = b;
+        } else if (y > b) {
+            i = b;
+            j = y;
+        }
+        for (; i < j; i++) {
+            if (Player[x][i].Ship_ID != 0) {
+                return false;
             }
         }
-        return true;
     }
+
+    return true;
 }
 
 void random_placement_of_ships(Cell **&Player, size_t size) {
@@ -71,27 +63,34 @@ void random_placement_of_ships(Cell **&Player, size_t size) {
                 x = disribution(rand);
                 y = disribution(rand);
             } while (Player[x][y].Ship_ID != 0);
-            if (ship(Player, size, x, y, x + ship_size, y) && ((x + ship_size) < size)) {
+            if ((x + ship_size) < size && ship(Player, x, y, x + ship_size, y)) {
                 for (int c = x; c < (x + ship_size); c++) {
                     Player[c][y].Ship_ID = ship_size;
                 }
-            } else if (ship(Player, size, x, y, x, y + ship_size) && ((y + ship_size) < size)) {
+            } else if ((y + ship_size < size) && ship(Player, x, y, x, y + ship_size)) {
                 for (int c = y; c < (y + ship_size); c++) {
                     Player[x][c].Ship_ID = ship_size;
                 }
-            } else if (ship(Player, size, x, y, x, y - ship_size) && ((y - ship_size) > -1)) {
+            } else if ((y - ship_size > 0) && ship(Player, x, y, x, y - ship_size)) {
                 for (int c = y - ship_size; c < y; c++) {
                     Player[x][c].Ship_ID = ship_size;
                 }
-            } else if (ship(Player, size, x, y, x - ship_size, y) && ((x - ship_size) > -1)) {
+            } else if ((x - ship_size > 0) && ship(Player, x, y, x - ship_size, y)) {
                 for (int c = x - ship_size; c < x; c++) {
                     Player[c][y].Ship_ID = ship_size;
                 }
-            } else { i--; }
+            } else {
+                std::cout << "not";
+                i--;
+            }
         }
         count_of_ships++;
         ship_size--;
     }
+}
+
+void manual_placement(Cell **&Player, size_t size) {
+
 }
 
 void Player_Turn(Cell **&Player, size_t size) {
@@ -112,6 +111,24 @@ void Player_Turn(Cell **&Player, size_t size) {
     }
 }
 
+void Computer_Shot_Repeat(Cell **&Player, size_t size, int x, int y) {
+    if ((x + 1) < size && Player[x + 1][y].hit == Indefinitely) {
+        Player[x + 1][y].hit = Hit;
+        Computer_Shot_Repeat(Player, size, x + 1, y);
+    } else if ((y + 1) < size && Player[x][y + 1].hit == Indefinitely) {
+        Player[x][y + 1].hit = Hit;
+        Computer_Shot_Repeat(Player, size, x, y + 1);
+    } else if ((x - 1) > 0 && Player[x - 1][y].hit == Indefinitely) {
+        Player[x - 1][y].hit = Hit;
+        Computer_Shot_Repeat(Player, size, x - 1, y);
+    } else if ((y - 1) > 0 && Player[x][y - 1].hit == Indefinitely) {
+        Player[x][y - 1].hit = Hit;
+        Computer_Shot_Repeat(Player, size, x, y - 1);
+    } else {
+        return;
+    }
+}
+
 void Computer_Shot(Cell **&Player, size_t size) {
     std::random_device rand;
     int x, y;
@@ -122,10 +139,87 @@ void Computer_Shot(Cell **&Player, size_t size) {
     } while (Player[x][y].Ship_ID != 0);
     if (Player[x][y].Ship_ID != 0) {
         Player[x][y].hit = Hit;
-        ComputerMove(Player,size,x,y);
+        Computer_Shot_Repeat(Player, size, x, y);
     } else {
         Player[x][y].hit = Miss;
     }
+}
+
+void Computer_Shot_Random(Cell **&Player, size_t size) {
+    std::random_device rand;
+    int x, y;
+    do {
+        std::uniform_int_distribution<int> disribution(0, 9);
+        x = disribution(rand);
+        y = disribution(rand);
+    } while (Player[x][y].Ship_ID != 0);
+    if (Player[x][y].Ship_ID != 0) {
+        Player[x][y].hit = Hit;
+        Computer_Shot_Random(Player, size);
+    } else {
+        Player[x][y].hit = Miss;
+    }
+}
+
+void (*Computer[2])(Cell **&Player, size_t size){Computer_Shot_Random, Computer_Shot};
+
+void (*placement[2])(Cell **&Player, size_t size){random_placement_of_ships, manual_placement};
+
+bool Win_Game(Cell **&Player, size_t size) {
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            if (Player[i][j].Ship_ID != 0 && Player[i][j].hit != Hit) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void Human_Computer(Cell **&Player, size_t size, Cell **&PC) {
+    for (int i = 0; i < size; i++) {
+        Player[i] = new Cell[size]{Indefinitely, 0};
+    }
+    for (int i = 0; i < size; i++) {
+        PC[i] = new Cell[size]{Indefinitely, 0};
+    }
+    char arrangement;
+    std::cout << "The computer arranges for the player - a\n"
+                 "The player places manually -R\n";
+    std::cin >> arrangement;
+    placement[arrangement](Player, size);
+    random_placement_of_ships(PC, size);
+    int difficulty;
+    std::cout << "Select computer difficulty:\n"
+                 "0- Random shot\n"
+                 "1 - Intellectual game.";
+    std::cin >> difficulty;
+    int count = 0;
+    do {
+
+        Print_Sea_Battlw_for_PC(PC, size);
+        Print_Sea_Battlw_for_Player(Player, size);
+        Player_Turn(PC, size);
+        if (count >= 20) {
+            if(Win_Game(PC, size)){
+                std::cout<<"Player win!!!";
+                return;
+            }
+        }
+        Computer[difficulty](Player, size);
+        if (count >= 20) {
+            if(Win_Game(Player, size)){
+                std::cout<<"Pc win!!!";
+                return;
+            }
+        }
+        count++;
+    } while ();
+
+}
+
+void Computer_Сomputer(Cell **&Player, size_t size, Cell **&PC) {
+
 }
 
 void Print_Sea_Battlw_for_PC(Cell **&Player, size_t size) {
@@ -150,10 +244,12 @@ void Print_Sea_Battlw_for_PC(Cell **&Player, size_t size) {
         if (i != size - 1) { std::cout << " "; }
         std::cout << i + 1 << " " << char(179);
         for (int j = 0; j < size; j++) {
-            if (Player[i][j].hit == Indefinitely) {
-                std::cout << "  ";
+            if (Player[i][j].hit == Miss) {
+                std::cout << "*" << " ";
+            } else if (Player[i][j].hit == Hit) {
+                std::cout << "X" << " ";
             } else {
-                std::cout << Player[i][j].hit << " ";
+                std::cout << "  ";
             }
         }
         std::cout << char(179);
@@ -194,8 +290,10 @@ void Print_Sea_Battlw_for_Player(Cell **&Player, size_t size) {
         if (i != size - 1) { std::cout << " "; }
         std::cout << i + 1 << " " << char(179);
         for (int j = 0; j < size; j++) {
-            if (Player[i][j].Ship_ID != 0) {
-                std::cout << Player[i][j].Ship_ID << " ";
+            if (Player[i][j].hit == Hit) {
+                std::cout << "X" << " ";
+            } else if (Player[i][j].Ship_ID != 0) {
+                std::cout << "#" << " ";
             } else {
                 std::cout << "  ";
             }
@@ -219,16 +317,24 @@ void Print_Sea_Battlw_for_Player(Cell **&Player, size_t size) {
 int main() {
     const size_t size = 10;
     Cell **player = new Cell *[size];
-    for (int i = 0; i < size; i++) {
-        player[i] = new Cell[size]{Indefinitely, 0};
-    }
     Cell **pc = new Cell *[size];
-    for (int i = 0; i < size; i++) {
-        pc[i] = new Cell[size]{Indefinitely, 0};
+    char modeSelection;
+    std::cout << "Game modes:\n"
+                 "h: human - computer;\n"
+                 "c: Computer - computer;\n"
+                 "e: End game";
+    std::cin >> modeSelection;
+    switch (modeSelection) {
+        case 'h':
+            Human_Computer(player, size, pc);
+            break;
+        case 'c':
+            Computer_Сomputer(player, size, pc);
+            break;
+        case 'e':
+            break;
     }
-    random_placement_of_ships(pc, size);
-    random_placement_of_ships(player, size);
-    Print_Sea_Battlw_for_PC(pc, size);
-    Print_Sea_Battlw_for_Player(player, size);
+
+    return 0;
 }
 

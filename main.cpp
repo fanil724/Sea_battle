@@ -86,22 +86,22 @@ void random_placement_of_ships(Cell **&Player, size_t size) {
 }
 
 void manual_placement(Cell **&Player, size_t size) {
-    int ship_size = 5, count_of_ships = 0;
-    for (int j = ship_size; j > 0; j--) {
+    int ship_size = 4, count_of_ships = 0;
+    for (int k = 4; k > 0; k--) {
         count_of_ships++;
-        ship_size--;
-        for (int i = 0; i < count_of_ships; i++) {
+        for (int c = 0; c < count_of_ships; c++) {
             int x, y, a, b;
             if (ship_size == 1) {
-                std::cout << "select  coordinates for the ship "<<ship_size<<":";
+                std::cout << count_of_ships << " select  coordinates for the ship " << ship_size << ":";
                 std::cin >> x >> y;
                 Player[--x][--y].Ship_ID = ship_size;
             } else {
-                std::cout << "select starting coordinates for the ship "<<ship_size<<":";
+                std::cout << count_of_ships << " select starting coordinates for the ship " << ship_size << ":";
                 std::cin >> x >> y;
-                std::cout << "select ending coordinates for the ship "<<ship_size<<":";
+                std::cout << count_of_ships << " select ending coordinates for the ship " << ship_size << ":";
                 std::cin >> a >> b;
                 if (ship(Player, --x, --y, --a, --b)) {
+                    int i,j;
                     if (y == b) {
                         if (x < a) {
                             i = x;
@@ -129,6 +129,7 @@ void manual_placement(Cell **&Player, size_t size) {
             }
             Print_Sea_Battle_for_Player(Player, size);
         }
+        ship_size--;
     }
 }
 
@@ -288,7 +289,7 @@ void Computer_Сomputer(Cell **&Player, size_t size, Cell **&PC) {
         Print_Sea_Battle_for_Player(Player, size);
 //        system("cls");
 //        Sleep(5000);
-   }
+    }
 }
 
 void Print_Sea_Battle_for_PC(Cell **&Player, size_t size) {

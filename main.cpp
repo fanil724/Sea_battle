@@ -1,6 +1,6 @@
 #include <iostream>
 #include <random>
-#include <stdlib.h>
+#include <windows.h>
 
 enum Shot_Status {
     Indefinitely,
@@ -86,20 +86,22 @@ void random_placement_of_ships(Cell **&Player, size_t size) {
 }
 
 void manual_placement(Cell **&Player, size_t size) {
-    int ship_size = 4, count_of_ships = 1;
+    int ship_size = 5, count_of_ships = 0;
     for (int j = ship_size; j > 0; j--) {
+        count_of_ships++;
+        ship_size--;
         for (int i = 0; i < count_of_ships; i++) {
             int x, y, a, b;
             if (ship_size == 1) {
-                std::cout << "select  coordinates for the ship";
-                std::cin >> x, y;
-                Player[x][y].Ship_ID = ship_size;
+                std::cout << "select  coordinates for the ship "<<ship_size<<":";
+                std::cin >> x >> y;
+                Player[--x][--y].Ship_ID = ship_size;
             } else {
-                std::cout << "select starting coordinates for the ship";
-                std::cin >> x, y;
-                std::cout << "select ending coordinates for the ship";
-                std::cin >> a, b;
-                if (ship(Player, x, y, a, b)) {
+                std::cout << "select starting coordinates for the ship "<<ship_size<<":";
+                std::cin >> x >> y;
+                std::cout << "select ending coordinates for the ship "<<ship_size<<":";
+                std::cin >> a >> b;
+                if (ship(Player, --x, --y, --a, --b)) {
                     if (y == b) {
                         if (x < a) {
                             i = x;
@@ -125,9 +127,8 @@ void manual_placement(Cell **&Player, size_t size) {
                     }
                 }
             }
+            Print_Sea_Battle_for_Player(Player, size);
         }
-        count_of_ships++;
-        ship_size--;
     }
 }
 
@@ -249,10 +250,10 @@ void Human_Computer(Cell **&Player, size_t size, Cell **&PC) {
             std::cout << "Pc win!!!";
             return;
         }
-        system("CLS");
         Print_Sea_Battle_for_PC(PC, size);
         Print_Sea_Battle_for_Player(Player, size);
-        //std::cout << count++;
+//        system("cls");
+//        Sleep(5000);
     }
 }
 
@@ -283,11 +284,11 @@ void Computer_Сomputer(Cell **&Player, size_t size, Cell **&PC) {
             std::cout << "Pc2 win!!!";
             return;
         }
-        system("CLS");
         Print_Sea_Battle_for_Player(PC, size);
         Print_Sea_Battle_for_Player(Player, size);
-        //std::cout << count++;
-    }
+//        system("cls");
+//        Sleep(5000);
+   }
 }
 
 void Print_Sea_Battle_for_PC(Cell **&Player, size_t size) {
